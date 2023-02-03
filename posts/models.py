@@ -13,7 +13,7 @@ class Category(models.Model):
 class Post(models.Model):
     title = models.CharField(max_length=100, null=False)
     content = models.TextField(null=False)
-    image = models.CharField(max_length=100, null=False)
+    image = models.ImageField(blank=True, upload_to = 'profile_pics')
     created = models.DateTimeField(auto_now_add=True, null=False)
     updated = models.DateTimeField(auto_now_add=True, null=False)
     status = models.CharField(max_length=10, null=False)
