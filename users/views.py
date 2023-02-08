@@ -1,27 +1,28 @@
-from django.shortcuts import render
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.generics import CreateAPIView
-from .serializers import RegisterSerializer
-from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
+from django.shortcuts import render, redirect
+from .forms import RegistrationForm, ProfileUpdateForm, UserUpdateForm
+from django.contrib import messages
 
 
-# Create your views here.
+def register(request):
+    form = RegistrationForm(request.POST or None)
 
-class RegisterView(CreateAPIView):
-    serializer_class = RegisterSerializer
-    queryset = User.objects.all()
+    if form.is_valid():
+        form.save()
+    
+    context = {"form": form}
+    return render(request, "users/register.html", context)
 
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        token = Token.objects.create(user=user)
-        print(token.key)
-        data = serializer.data
-        data["key"] = token.key
-        print(serializer.data)
-        # print(data)
-        headers = self.get_success_headers(serializer.data)
-        return Response(data, status=status.HTTP_201_CREATED, headers=headers)
+
+def profile(request):
+    u_form = UserUpdateForm(request.POST or None, instance=request.user)
+    p_form = ProfileUpdateForm(request.POST or None, instance=request.user.profile, files=request.FILES)
+
+    if u_form.is_valid() and p_form.is_valid():
+        u_form.save()
+        p_form.save()
+        messages.success(request, "Your profile has been updated")
+
+        return redirect(request.path)
+    context = {'u_form': u_form, 'p_form': p_form}
+    
+    return render(request, 'users/profile.html', context)
